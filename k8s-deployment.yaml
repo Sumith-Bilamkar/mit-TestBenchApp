@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mit-testbench-app
+  namespace: mit-testbench
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mit-testbench-app
+  template:
+    metadata:
+      labels:
+        app: mit-testbench-app
+    spec:
+      containers:
+        - name: mit-testbench-app
+          image: ${DOCKER_REPO}:${BUILD_NUMBER}
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mit-testbench-service
+  namespace: mit-testbench
+spec:
+  selector:
+    app: mit-testbench-app
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer
