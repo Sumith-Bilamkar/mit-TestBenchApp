@@ -5,7 +5,7 @@ pipeline {
         DOCKER_TAG = "latest"
         K8S_NAMESPACE = "mit-testbench"
         K8S_DEPLOYMENT_FILE = "deployment-service.yaml"
-        AWS_REGION = "us-west-2"
+        AWS_REGION = "us-west-2b"
         EKS_CLUSTER_NAME = "mit-acme"
     }
     stages {
