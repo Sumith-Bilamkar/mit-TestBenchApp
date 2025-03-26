@@ -4,9 +4,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = "sumith568/mit-testbenchapp"
         DOCKER_TAG = "latest"
-        AWS_REGION = "us-west-2"  // Replace with your AWS region
-        EKS_CLUSTER_NAME = "your-eks-cluster"
-        NAMESPACE = "your-namespace"
     }
 
     stages {
@@ -16,39 +13,33 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Go Application') {
             steps {
                 script {
-                    docker.build(DOCKER_IMAGE)
+                    sh 'go mod tidy'
+                    sh 'go build -o mit-TestBenchApp'
                 }
             }
         }
 
-        stage('Login to Docker Hub') {
+        stage('Test Go Application') {
+            steps {
+                script {
+                    sh 'go test ./...'
+                }
+            }
+        }
+
+        stage('Build, Login & Push Docker Image') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        sh """
+                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        """
                     }
-                }
-            }
-        }
-
-        stage('Push Docker Image to Docker Hub') {
-            steps {
-                script {
-                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                }
-            }
-        }
-
-        stage('Update EKS Deployment') {
-            steps {
-                script {
-                    sh """
-                    aws eks --region ${AWS_REGION} update-kubeconfig --name ${EKS_CLUSTER_NAME}
-                    kubectl set image deployment/mit-testbenchapp ${DOCKER_IMAGE}:${DOCKER_TAG} -n ${NAMESPACE}
-                    """
                 }
             }
         }
