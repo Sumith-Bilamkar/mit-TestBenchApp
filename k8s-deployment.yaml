@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: mit-testbench-app
-          image: ${DOCKER_REPO}:${BUILD_NUMBER}
+          image: sumith568/mit-testbenchapp:latest
           ports:
             - containerPort: 8080
 ---
