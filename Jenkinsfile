@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "yourdockerhubusername/mit-testbenchapp"
+        DOCKER_IMAGE = "sumith568/mit-testbenchapp"
         DOCKER_TAG = "latest"
         AWS_REGION = "us-west-2"  // Replace with your AWS region
         EKS_CLUSTER_NAME = "your-eks-cluster"
