@@ -60,10 +60,11 @@ pipeline {
             echo 'Deployment was successful!'
             archiveArtifacts artifacts: '**/*.yaml', allowEmptyArchive: true
             sh """
-            mkdir -p ${ARTIFACTS_DIR}
-            kubectl get all -n ${K8S_NAMESPACE} > ${ARTIFACTS_DIR}/k8s-resources.log
+                mkdir -p artifacts
+                kubectl get all -n ${K8S_NAMESPACE} > artifacts/k8s-resources.log || echo "No resources found" > artifacts/k8s-resources.log
             """
             archiveArtifacts artifacts: '${ARTIFACTS_DIR}/*', allowEmptyArchive: true
+            fingerprint 'artifacts/k8s-resources.log'
         }
         failure {
             echo 'Build or deployment failed!'
