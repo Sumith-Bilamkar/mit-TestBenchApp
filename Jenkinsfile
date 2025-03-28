@@ -7,6 +7,7 @@ pipeline {
         K8S_DEPLOYMENT_FILE = "deployment-service.yaml"
         AWS_REGION = "us-west-2"
         EKS_CLUSTER_NAME = "mit-acme"
+        ARTIFACTS_DIR = "artifacts"
     }
     stages {
         stage('Checkout') {
@@ -52,6 +53,24 @@ pipeline {
                     """
                 }
             }
+        }
+    }
+    post {
+        success {
+            echo 'Deployment was successful!'
+            archiveArtifacts artifacts: '**/*.yaml', allowEmptyArchive: true
+            sh """
+            mkdir -p ${ARTIFACTS_DIR}
+            kubectl get all -n ${K8S_NAMESPACE} > ${ARTIFACTS_DIR}/k8s-resources.log
+            """
+            archiveArtifacts artifacts: '${ARTIFACTS_DIR}/*', allowEmptyArchive: true
+        }
+        failure {
+            echo 'Build or deployment failed!'
+        }
+        always {
+            echo 'Cleaning up workspace...'
+            sh 'docker system prune -f'
         }
     }
 }
