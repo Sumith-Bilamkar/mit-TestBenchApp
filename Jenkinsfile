@@ -19,11 +19,12 @@ pipeline {
         stage('Security Scan - Dependency-Check') {
             steps {
                 script {
-                    sh 'mkdir -p dependency-check-reports' // Ensure report directory exists
+                    // Ensure the directory for reports exists
+                    sh 'mkdir -p dependency-check-reports'
                 }
-                dependencyCheck additionalArguments: '--format "HTML,JSON"', // Generate reports in both formats
-                                outputDirectory: 'dependency-check-reports',
-                                suppressionFile: ''
+                dependencyCheck odcInstallation: 'dependency-check',
+                               additionalArguments: '--format "HTML,JSON" --out "dependency-check-reports"',
+                               failBuildOnCVSS: 7.0
             }
         }
 
@@ -50,6 +51,7 @@ pipeline {
                 }
             }
         }
+
         stage('Update kubeconfig') {
             steps {
                 script {
@@ -59,6 +61,7 @@ pipeline {
                 }
             }
         }
+
         stage('Create Namespace if not exists') {
             steps {
                 script {
@@ -68,6 +71,7 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
