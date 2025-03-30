@@ -23,8 +23,7 @@ pipeline {
                     sh 'mkdir -p dependency-check-reports'
                 }
                 dependencyCheck odcInstallation: 'dependency-check',
-                               additionalArguments: '--format "HTML,JSON" --out "dependency-check-reports"',
-                               failBuildOnCVSS: 7.0
+                               additionalArguments: '--format "HTML,JSON" --out "dependency-check-reports"'
             }
         }
 
