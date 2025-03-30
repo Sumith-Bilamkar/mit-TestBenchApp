@@ -15,6 +15,32 @@ pipeline {
                 checkout scm
             }
         }
+
+        stage('Security Scan - Dependency-Check') {
+            steps {
+                script {
+                    sh 'mkdir -p dependency-check-reports' // Ensure report directory exists
+                }
+                dependencyCheckAnalyzer datadir: 'dependency-check-data',
+                                        outdir: 'dependency-check-reports',
+                                        format: ['HTML', 'JSON'], // Generate reports in both formats
+                                        suppressionFile: '',
+                                        failOnError: false,
+                                        isAutoupdateDisabled: false
+            }
+        }
+
+        stage('Save Security Scan Reports') {
+            steps {
+                script {
+                    sh 'mkdir -p artifacts'
+                    sh 'cp dependency-check-reports/dependency-check-report.html artifacts/'
+                    sh 'cp dependency-check-reports/dependency-check-report.json artifacts/'
+                }
+                archiveArtifacts artifacts: 'artifacts/dependency-check-report.*', allowEmptyArchive: true
+            }
+        }
+
         stage('Build, Login & Push Docker Image') {
             steps {
                 script {
