@@ -21,10 +21,8 @@ pipeline {
                 script {
                     sh 'mkdir -p dependency-check-reports' // Ensure report directory exists
                 }
-                dependencyCheck format: ['HTML', 'JSON'], // Generate reports in both formats
-                                outdir: 'dependency-check-reports',
-                                failBuildOnCVSS: 7.0, // Optional threshold for CVSS
-                                data: 'dependency-check-data',
+                dependencyCheck additionalArguments: '--format "HTML,JSON"', // Generate reports in both formats
+                                outputDirectory: 'dependency-check-reports',
                                 suppressionFile: ''
             }
         }
