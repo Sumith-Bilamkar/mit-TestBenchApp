@@ -20,9 +20,19 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'nd-api-key', variable: 'NVD_API_KEY')]) {
-                        sh 'mkdir -p dependency-check-reports'
-                        dependencyCheck odcInstallation: 'dependency-check',
-                                       additionalArguments: "--format HTML --format JSON --out dependency-check-reports --nvdApiKey ${NVD_API_KEY}"
+                        sh '''
+                        # Ensure dependencies are tidy and generate the dependency list
+                        go mod tidy
+                        go list -m all > go-dependencies.txt
+
+                        # Run Dependency-Check on the generated dependency list
+                        mkdir -p dependency-check-reports
+                        dependencyCheck \
+                            --format HTML --format JSON \
+                            --out dependency-check-reports \
+                            --nvdApiKey $NVD_API_KEY \
+                            --scan ./go-dependencies.txt
+                        '''
                     }
                 }
             }
