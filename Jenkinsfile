@@ -36,6 +36,8 @@ pipeline {
                     sh 'cp dependency-check-reports/dependency-check-report.json artifacts/'
                 }
                 archiveArtifacts artifacts: 'artifacts/dependency-check-report.*', allowEmptyArchive: true
+                fingerprint 'artifacts/dependency-check-report.html'
+                fingerprint 'artifacts/dependency-check-report.json'
             }
         }
 
@@ -86,12 +88,15 @@ pipeline {
         success {
             echo 'Deployment was successful!'
             archiveArtifacts artifacts: '**/*.yaml', allowEmptyArchive: true
-            sh """
-                mkdir -p artifacts
-                kubectl get all -n ${K8S_NAMESPACE} > artifacts/k8s-resources.log || echo "No resources found" > artifacts/k8s-resources.log
-            """
-            archiveArtifacts artifacts: '${ARTIFACTS_DIR}/*', allowEmptyArchive: true
-            fingerprint 'artifacts/k8s-resources.log'
+            fingerprint '**/*.yaml'
+            script {
+                sh """
+                    mkdir -p artifacts
+                    kubectl get all -n ${K8S_NAMESPACE} > artifacts/k8s-resources.log || echo "No resources found" > artifacts/k8s-resources.log
+                """
+                archiveArtifacts artifacts: '${ARTIFACTS_DIR}/*', allowEmptyArchive: true
+                fingerprint 'artifacts/k8s-resources.log'
+            }
         }
         failure {
             echo 'Build or deployment failed!'
