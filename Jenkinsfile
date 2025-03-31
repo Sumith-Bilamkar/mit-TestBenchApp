@@ -8,8 +8,20 @@ pipeline {
         AWS_REGION = "us-west-2"
         EKS_CLUSTER_NAME = "mit-acme"
         ARTIFACTS_DIR = "artifacts"
+        GO_VERSION = "go-latest" // Using the configured Go installation
     }
+
     stages {
+        stage('Setup Go Environment') {
+            steps {
+                script {
+                    def goPath = tool name: GO_VERSION, type: 'go'
+                    env.PATH = "${goPath}/bin:${env.PATH}"
+                    sh 'go version' // Verify Go installation
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -94,9 +106,10 @@ pipeline {
             }
         }
     }
+
     post {
         success {
-            echo 'Deployment was successful!'
+            echo '✅ Deployment was successful!'
             archiveArtifacts artifacts: '**/*.yaml', allowEmptyArchive: true
             fingerprint '**/*.yaml'
             script {
@@ -109,10 +122,10 @@ pipeline {
             }
         }
         failure {
-            echo 'Build or deployment failed!'
+            echo '❌ Build or deployment failed!'
         }
         always {
-            echo 'Cleaning up workspace...'
+            echo '🧹 Cleaning up workspace...'
             sh 'docker system prune -f'
         }
     }
