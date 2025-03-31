@@ -19,11 +19,12 @@ pipeline {
         stage('Security Scan - Dependency-Check') {
             steps {
                 script {
-                    // Ensure the directory for reports exists
-                    sh 'mkdir -p dependency-check-reports'
+                    withCredentials([string(credentialsId: 'nd-api-key', variable: 'NVD_API_KEY')]) {
+                        sh 'mkdir -p dependency-check-reports'
+                        dependencyCheck odcInstallation: 'dependency-check',
+                                       additionalArguments: "--format HTML --format JSON --out dependency-check-reports --nvdApiKey ${NVD_API_KEY}"
+                    }
                 }
-                dependencyCheck odcInstallation: 'dependency-check',
-                               additionalArguments: '--format HTML --format JSON --out dependency-check-reports'
             }
         }
 
@@ -31,8 +32,8 @@ pipeline {
             steps {
                 script {
                     sh 'mkdir -p artifacts'
-                    sh '[ -f dependency-check-reports/dependency-check-report.html ] && cp dependency-check-reports/dependency-check-report.html artifacts/ || echo "HTML report missing"'
-                    sh '[ -f dependency-check-reports/dependency-check-report.json ] && cp dependency-check-reports/dependency-check-report.json artifacts/ || echo "JSON report missing"'
+                    sh 'cp dependency-check-reports/dependency-check-report.html artifacts/'
+                    sh 'cp dependency-check-reports/dependency-check-report.json artifacts/'
                 }
                 archiveArtifacts artifacts: 'artifacts/dependency-check-report.*', allowEmptyArchive: true
             }
