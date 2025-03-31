@@ -23,7 +23,7 @@ pipeline {
                     sh 'mkdir -p dependency-check-reports'
                 }
                 dependencyCheck odcInstallation: 'dependency-check',
-                               additionalArguments: '--format "HTML,JSON" --out "dependency-check-reports"'
+                               additionalArguments: '--format HTML --format JSON --out dependency-check-reports'
             }
         }
 
@@ -31,8 +31,8 @@ pipeline {
             steps {
                 script {
                     sh 'mkdir -p artifacts'
-                    sh 'cp dependency-check-reports/dependency-check-report.html artifacts/'
-                    sh 'cp dependency-check-reports/dependency-check-report.json artifacts/'
+                    sh '[ -f dependency-check-reports/dependency-check-report.html ] && cp dependency-check-reports/dependency-check-report.html artifacts/ || echo "HTML report missing"'
+                    sh '[ -f dependency-check-reports/dependency-check-report.json ] && cp dependency-check-reports/dependency-check-report.json artifacts/ || echo "JSON report missing"'
                 }
                 archiveArtifacts artifacts: 'artifacts/dependency-check-report.*', allowEmptyArchive: true
             }
