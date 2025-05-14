@@ -7,22 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Setup Go Environment') {
-            steps {
-                script {
-                    def goPath = tool name: GO_VERSION, type: 'go'
-                    env.PATH = "${goPath}/bin:${env.PATH}"
-                    sh 'go version' // Verify Go installation
-                }
-            }
-        }
-
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build, Login & Push Docker Image') {
             steps {
                 script {
