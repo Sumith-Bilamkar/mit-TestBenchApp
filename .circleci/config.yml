@@ -6,23 +6,36 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
-
       - setup_remote_docker
+
+      - run:
+          name: Debug env
+          command: |
+            echo "✅ DOCKERHUB_USERNAME: '$DOCKERHUB_USERNAME'"
+            echo "✅ Docker tag: '$DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1'"
+
+      - run:
+          name: Verify env vars
+          command: |
+            if [[ -z "$DOCKERHUB_USERNAME" || -z "$DOCKERHUB_PASSWORD" ]]; then
+              echo "❌ DOCKERHUB_USERNAME or DOCKERHUB_PASSWORD is missing"
+              exit 1
+            fi
 
       - run:
           name: Build Docker image
           command: |
-            docker build -t $DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1 .
+            docker build -t "$DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1" .
 
       - run:
-          name: Log in to Docker Hub
+          name: Login to Docker Hub
           command: |
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
       - run:
           name: Push Docker image
           command: |
-            docker push $DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1
+            docker push "$DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1"
 
 workflows:
   build:
