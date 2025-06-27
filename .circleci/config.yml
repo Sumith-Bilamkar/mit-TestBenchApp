@@ -1,52 +1,30 @@
-# This config was automatically generated from your source code
-# Stacks detected: artifact:go-executable:,cicd:jenkins:.,deps:go:.
 version: 2.1
+
 jobs:
-  test-go:
-    # Install go modules and run tests
-    docker:
-      - image: cimg/go:1.20
-    steps:
-      - checkout
-      - run:
-          name: Run tests
-          command: gotestsum --junitfile junit.xml
-      - store_test_results:
-          path: junit.xml
-  build-go-executables:
-    # Build go executables and store them as artifacts
-    docker:
-      - image: cimg/go:1.20
-    steps:
-      - checkout
-      - run:
-          name: Create the ~/artifacts directory if it doesn't exist
-          command: mkdir -p ~/artifacts
-      - run:
-          name: Build executables
-          command: go build -o ~/artifacts ./...
-      - store_artifacts:
-          path: ~/artifacts
-          destination: executables
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
+  build-and-push:
     docker:
       - image: cimg/base:stable
     steps:
-      # Replace this with steps to deploy to users
+      - checkout
+
+      - setup_remote_docker
+
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Build Docker image
+          command: |
+            docker build -t $DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1 .
+
       - run:
-          name: found jenkins config
-          command: ':'
+          name: Log in to Docker Hub
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - run:
+          name: Push Docker image
+          command: |
+            docker push $DOCKERHUB_USERNAME/my-app:$CIRCLE_SHA1
+
 workflows:
-  build-and-test:
+  build:
     jobs:
-      - test-go
-      - build-go-executables:
-          requires:
-            - test-go
-    # - deploy:
-    #     requires:
-    #       - build-go-executables
+      - build-and-push
